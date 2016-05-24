@@ -27,7 +27,7 @@ namespace MyParser {
 
 	struct variable {
 		std::string name;
-		variable(const std::string& name) :name(name) {}
+		variable(std::string name) :name(name) {}
 		variable() {}
 	};
 
@@ -59,27 +59,27 @@ namespace MyParser {
 	struct binary_operator {
 		expression left;
 		expression right;
-		binary_operator(expression const& lhs, expression const & rhs) :left{ std::move(lhs) }, right{ std::move(rhs) } {}
+		binary_operator(expression const lhs, expression const  rhs) :left{ lhs }, right{ rhs } {}
 	};
 
 	template<operators Op>
 	struct unary_operator {
 		expression child;
-		unary_operator(expression const& child) :child{ std::move(child) } {}
+		unary_operator(expression const child) :child{ child } {}
 	};
 
 	struct function {
 		using arg_t = std::vector<expression>;
 		arg_t args;
 		std::string name;
-		function(const std::string& name, const arg_t & a) :name(name), args(std::move(a)) {}
+		function(const std::string name, const arg_t  a) :name(name), args(a) {}
 		function() {}
 	};
 
 	struct arrow {
 		expression l;
 		boost::variant<variable, function> r;
-		arrow(const expression& _l, const boost::variant<variable, function>& _r) :l(std::move(_l)), r(std::move(_r)) {}
+		arrow(const expression _l, const boost::variant<variable, function> _r) :l(_l), r(_r) {}
 	};
 }
 

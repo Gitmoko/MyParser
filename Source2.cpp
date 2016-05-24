@@ -24,19 +24,19 @@ namespace MyParser {
 	template<operators Op>
 	auto make_binray_operator() {
 		return boost::phoenix::bind(
-			[](auto const& lhs, auto const& rhs) {return binary_operator<Op>{lhs, rhs}; }
+			[](auto const lhs, auto const rhs) {return binary_operator<Op>{lhs, rhs}; }
 		, boost::spirit::qi::_val, boost::spirit::qi::_1);
 	}
 
 	template<operators Op>
 	auto make_unary_operator() {
 		return boost::phoenix::bind(
-			[](auto const& child) {return unary_operator<Op>{child}; }
+			[](auto const child) {return unary_operator<Op>{child}; }
 		, boost::spirit::qi::_1);
 	}
 	auto make_tuple() {
 		return boost::phoenix::bind(
-			[](const auto& tuple_impl) {
+			[](const auto tuple_impl) {
 			return tuple_impl.is_initialized() ? tuple_impl.get() : std::vector<expression>{};
 		}
 		, boost::spirit::qi::_1);
@@ -45,7 +45,7 @@ namespace MyParser {
 
 	auto make_function() {
 		return boost::phoenix::bind(
-			[](auto const& name, const auto& args) {
+			[](auto const name, const auto args) {
 			return function{ name,  args };
 		}
 			, boost::spirit::qi::_1
@@ -55,7 +55,7 @@ namespace MyParser {
 
 	auto make_variable() {
 		return boost::phoenix::bind(
-			[](const auto& name) {
+			[](const auto name) {
 			return variable{ name};
 		}
 		, boost::spirit::qi::_1);
@@ -64,7 +64,7 @@ namespace MyParser {
 
 	auto make_arrow() {
 		return boost::phoenix::bind(
-			[](auto const& lhs, auto const& rhs) {
+			[](auto const lhs, auto const rhs) {
 			return arrow{lhs, rhs}; }
 		, boost::spirit::qi::_val, boost::spirit::qi::_1);
 	}
