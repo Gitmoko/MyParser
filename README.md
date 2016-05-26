@@ -12,7 +12,7 @@ exampleのプログラムに入れてごらん
 \>f()    
  D  
 
-\>child()
+\>child()  
  Instance
    
 \>child()->f()  
