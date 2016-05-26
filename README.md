@@ -6,15 +6,15 @@ twitter: https://twitter.com/Retwimoko
 
 # EXAMPLE  
 exampleのプログラムに入れてごらん  
->v  
+\>v  
  8  
   
->f()    
+\>f()    
  D  
 
->child()
+\>child()
  Instance
    
->child()->f()  
+\>child()->f()  
  C  
   
