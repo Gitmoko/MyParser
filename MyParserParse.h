@@ -81,6 +81,11 @@ namespace MyParser {
 		boost::variant<variable, function> r;
 		arrow(const expression _l, const boost::variant<variable, function> _r) :l(_l), r(_r) {}
 	};
+
+
+	expression parse_impl(const std::string& s);
+	expression parse_impl_debug(const std::string& s);
+
 }
 
 #endif

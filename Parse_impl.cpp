@@ -139,4 +139,15 @@ namespace MyParser {
 		boost::spirit::qi::phrase_parse(b, e, exp, boost::spirit::ascii::space, tree);
 		return tree;
 	}
+
+	expression parse_impl_debug(const std::string& s) {
+		Myparser::expr_grammar<decltype(s.begin())> exp;
+		expression tree;
+		auto b = s.begin();
+		auto e = s.end();
+		boost::spirit::qi::phrase_parse(b, e, exp, boost::spirit::ascii::space, tree);
+		std::string str(b,e);
+		std::cout << "parsing stoped here:" << str << std::endl;
+		return tree;
+	}
 }

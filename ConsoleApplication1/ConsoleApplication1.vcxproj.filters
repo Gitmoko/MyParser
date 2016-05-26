@@ -29,10 +29,10 @@
     <ClCompile Include="..\Json.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source.cpp">
+    <ClCompile Include="..\Parse_impl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source2.cpp">
+    <ClCompile Include="..\Example.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
