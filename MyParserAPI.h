@@ -1,6 +1,6 @@
 #ifndef MyParserH
 #define MyParserH
-#include"MyParserFront.h"
+#include"MyParserSemantics.h"
 
 namespace MyParser {
 

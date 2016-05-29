@@ -1,6 +1,6 @@
 #include<iostream>
 #include<map>
-#include"MyParser.h"
+#include"MyParserAPI.h"
 
 struct printer : public boost::static_visitor<void> {
 	void operator()(const double&arg){
@@ -137,7 +137,8 @@ int main() {
 			ast = parser::Compile(s);
 		}
 		catch (MyParser::compile_failed err) {
-			std::cout << err.msg << std::endl;
+			std::cout <<"Expecting: "<< err.what << std::endl;
+			std::cout <<"parsing here: "<< err.pos << std::endl;
 		}
 		auto ret = parser::Evaluate(ast, { &d });
 
