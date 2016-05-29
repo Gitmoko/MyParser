@@ -106,7 +106,7 @@ namespace MyParser {
 				| var[_val = _1]
 				| quoted[_val = _1];
 
-			func = (code > lit("(") > tuple > lit(")"))[_val = make_function()];
+			func = (code >> lit("(") > tuple > lit(")"))[_val = make_function()];
 
 			var = code[_val = make_variable()];
 
