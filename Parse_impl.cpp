@@ -94,13 +94,18 @@ namespace MyParser {
 
 				quoted %= lexeme['"' >> *(qi::char_ - '"') >> '"'];
 
-				expr = eq[_val = _1] >> *((qi::lit("==") >> eq[_val = make_binray_operator<operators::eq>()])
-					| (qi::lit("!=") >> eq[_val = make_binray_operator<operators::noteq>()]));
+				expr = rel[_val = _1] >> *((qi::lit("==") >> rel[_val = make_binray_operator<operators::eq>()])
+					| (qi::lit("!=") >> rel[_val = make_binray_operator<operators::noteq>()]));
+
+				rel = eq[_val = _1] >> *((qi::lit("<") >> eq[_val = make_binray_operator<operators::relless>()])
+					| (qi::lit(">") >> eq[_val = make_binray_operator<operators::relmore>()])
+					| (qi::lit("<=") >> eq[_val = make_binray_operator<operators::releqless>()])
+					| (qi::lit(">=") >> eq[_val = make_binray_operator<operators::releqmore>()]));
 
 				eq = and[_val = _1] >> *((qi::lit("&&") >> and[_val = make_binray_operator<operators::and>()])
 					| (qi::lit("||") >> and[_val = make_binray_operator<operators:: or >()]));
 
-
+				
 				and = additive[_val = _1] >> *((qi::lit("+") >> additive[_val = make_binray_operator<operators::add>()])
 					| (qi::lit("-") >> additive[_val = make_binray_operator<operators::sub>()]));
 
@@ -146,8 +151,10 @@ namespace MyParser {
 		auto b = s.begin();
 		auto e = s.end();
 		boost::spirit::qi::phrase_parse(b, e, exp, boost::spirit::ascii::space, tree);
-		std::string str(b,e);
-		std::cout << "parsing stoped here:" << str << std::endl;
+		if (b != e) {
+			std::string str(b, e);
+			throw compile_failed{ "parsing stoped here:" + str };
+		}
 		return tree;
 	}
 }

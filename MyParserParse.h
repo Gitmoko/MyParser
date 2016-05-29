@@ -86,6 +86,10 @@ namespace MyParser {
 	expression parse_impl(const std::string& s);
 	expression parse_impl_debug(const std::string& s);
 
+	struct compile_failed { 
+		std::string msg;
+	};
+
 }
 
 #endif

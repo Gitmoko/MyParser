@@ -59,7 +59,7 @@ struct C {
 	V_t v;
 
 	C() {
-		v["v"] = 4;
+		v["hp"] = 4;
 		f["f"] = [](const parser::args_type& arg) { return "C"; };
 	}
 
@@ -75,7 +75,7 @@ struct D  {
 	C c;
 
 	D() {
-		v["v"] = 8;
+		v["hp"] = 8;
 		f["f"] = [](const parser::args_type& arg)->parser::return_t_type{ return "D"; };
 		auto p = &c;
 		f["child"] = [=](const parser::args_type& arg)->parser::return_t_type{return parser::Instance_type{ p }; };
@@ -130,9 +130,17 @@ struct visitor_f : public parser::Visitor_f_base {
 
 int main() {
 	std::string s;
-	while (std::cout << ">",std::cin >> s, s != "q") {
+	while (std::cout << ">", std::getline(std::cin, s), s != "q") {
 		D d;
-		auto ret = parser::Parse(s, { &d });
+		MyParser::expression ast;
+		try {
+			ast = parser::Compile(s);
+		}
+		catch (MyParser::compile_failed err) {
+			std::cout << err.msg << std::endl;
+		}
+		auto ret = parser::Evaluate(ast, { &d });
+
 		if (!ret.empty()) {
 			printer::printtree(ret);
 		}
