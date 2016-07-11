@@ -36,6 +36,8 @@ namespace MyParser {
 
 	struct arrow;
 
+	struct tuple;
+
 	using expression = boost::variant<double
 		, std::string
 		, boost::recursive_wrapper<binary_operator<operators::eq>>
@@ -52,6 +54,7 @@ namespace MyParser {
 		, boost::recursive_wrapper<binary_operator<operators::div>>
 		, boost::recursive_wrapper<function>
 		, boost::recursive_wrapper<arrow>
+		, boost::recursive_wrapper<tuple>
 		, variable
 	>;
 
@@ -80,6 +83,14 @@ namespace MyParser {
 		expression l;
 		boost::variant<variable, function> r;
 		arrow(const expression _l, const boost::variant<variable, function> _r) :l(_l), r(_r) {}
+	};
+
+	struct tuple {
+		using elem_t = std::vector<expression>;
+		elem_t elems;
+		tuple(const elem_t  a) : elems(a) {}
+		tuple() {}
+
 	};
 
 

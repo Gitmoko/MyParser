@@ -13,20 +13,24 @@ struct printer : public boost::static_visitor<void> {
 	}
 	template<class ...T>
 	void operator()(const MyParser::v_tuple<T...>& arg){
+
+		drawspace();
+		std::cout << "[" << std::endl;
+
+		depth++;
 		for (auto&elem : arg.tuple) {
-			drawspace();
-			std::cout << "[" << std::endl;
-			depth++;
 			boost::apply_visitor(*this, elem);
-			depth--;
-			drawspace();
-			std::cout << "[" << std::endl;
+			std::cout << std::endl;
 		}
+		depth--;
+
+		drawspace();
+		std::cout << "]";
 	}
 	template<class...T>
 	void operator()(const MyParser::Instance<T...>& arg) {
 		drawspace();
-		std::cout << "instance" << std::endl;
+		std::cout << "instance";
 	}
 	template<class Variant>
 	static void printtree(const Variant& v){
@@ -38,7 +42,7 @@ struct printer : public boost::static_visitor<void> {
 	void drawspace() {
 		auto n = depth;
 		while(n--)
-			std::cout << " ";
+			std::cout << "  ";
 	}
 
 
@@ -87,14 +91,14 @@ struct visitor_v : public parser::Visitor_v_base{
 	using ret = base_t::return_t_type;
 	visitor_v(const std::string& name_) :Visitor_v_base(name_){};
 	ret operator()(C* arg) {
-		std::cout << name << std::endl;
+		std::cout <<"C's "<< name << std::endl;
 		if (arg->v.count(name)>0)
 			return arg->v[name];
 		return 0;
 	}
 	ret operator()(D* arg) {
 
-		std::cout << name << std::endl;
+		std::cout <<"D's "<< name << std::endl;
 		if (arg->v.count(name) > 0)
 			return arg->v[name];
 		return 0;
@@ -110,14 +114,14 @@ struct visitor_f : public parser::Visitor_f_base {
 	visitor_f(const std::string& name_, base_t::args_type& args_ ) :parser::Visitor_f_base(name_,args_){}
 	ret operator()(C* arg) {
 
-		std::cout << name << std::endl;
+		std::cout <<"C's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
 			return arg->f[name](args);
 		return 0;
 	}
 	ret operator()(D* arg) {
 
-		std::cout << name << std::endl;
+		std::cout <<"D's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
 			return arg->f[name](args);
 		return 0;

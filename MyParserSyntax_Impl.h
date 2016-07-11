@@ -23,10 +23,20 @@ namespace MyParser {
 				[](auto const child) {return unary_operator<Op>{child}; }
 			, boost::spirit::qi::_1);
 		}
+		auto make_args() {
+			return boost::phoenix::bind(
+				//optional_arg is optional<std::vector<expression>>
+				[](const auto optional_arg) {
+				return optional_arg.is_initialized() ? optional_arg.get() : std::vector<expression>{};
+			}
+			, boost::spirit::qi::_1);
+		}
+
 		auto make_tuple() {
 			return boost::phoenix::bind(
-				[](const auto tuple_impl) {
-				return tuple_impl.is_initialized() ? tuple_impl.get() : std::vector<expression>{};
+				[](const auto argtuple) {
+				tuple ret(argtuple);
+				return ret;
 			}
 			, boost::spirit::qi::_1);
 		}
@@ -66,8 +76,9 @@ namespace MyParser {
 	struct expr_grammar :public qi::grammar<Iterator, expression(), ascii::space_type> {
 	private:
 		qi::rule<Iterator, expression(), ascii::space_type> expr, eq, and, rel, additive, multiple, arrow;
-		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> tuple;
-		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> tuple_impl;
+		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> args;
+		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> args_impl;
+		qi::rule<Iterator, tuple(), ascii::space_type> tpl;
 		qi::rule<Iterator, std::string(), ascii::space_type> code, quoted;
 		qi::rule<Iterator, function(), ascii::space_type> func;
 		qi::rule<Iterator, variable(), ascii::space_type> var;
@@ -102,17 +113,20 @@ namespace MyParser {
 
 			arrow = double_[_val = _1]
 				| lit("(") > expr[_val = _1] > lit(")")
+				| lit("{") > tpl[_val = _1] > lit("}")
 				| func[_val = _1]
 				| var[_val = _1]
 				| quoted[_val = _1];
 
-			func = (code >> lit("(") > tuple > lit(")"))[_val = make_function()];
+			func = (code >> lit("(") > args > lit(")"))[_val = make_function()];
 
 			var = code[_val = make_variable()];
 
-			tuple = (-tuple_impl)[_val = make_tuple()];
+			args = (-args_impl)[_val = make_args()];
 
-			tuple_impl = (expr % lit(","))[_val = _1];
+			args_impl = (expr % lit(","))[_val = _1];
+
+			tpl = args[_val = make_tuple()];
 
 			expr.name("expr");
 			eq.name("eq");
@@ -121,12 +135,13 @@ namespace MyParser {
 			additive.name("additive");
 			multiple.name("multiple");
 			arrow.name("arrow");
-			tuple.name("tuple");
-			tuple_impl.name("tuple_impl");
+			args.name("args");
+			args_impl.name("args_impl");
 			code.name("code");
 			quoted.name("quoted");
 			func.name("func");
 			var.name("var");
+			tpl.name("tuple");
 
 
 			qi::on_error<qi::fail>

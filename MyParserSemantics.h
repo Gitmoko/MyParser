@@ -35,6 +35,7 @@ namespace MyParser {
 	struct v_tuple {
 		using mem_t = std::vector<return_t<T...>>;
 		mem_t tuple;
+		v_tuple() {}
 		v_tuple(const mem_t& arg) :tuple(arg) { }
 	};
 
@@ -183,6 +184,15 @@ namespace MyParser {
 			else {
 				throw MyParser::bad_operand{};
 			}
+		}
+
+		return_t<T...> operator() (const tuple & op)const {
+			v_tuple<T...> ret;
+			for (auto& elem : op.elems) {
+				auto value = boost::apply_visitor(*this, elem);
+				ret.tuple.push_back(value);
+			}
+			return ret;
 		}
 
 		template<class Expr>
@@ -354,6 +364,18 @@ namespace MyParser {
 			else {
 				throw MyParser::bad_operand{};
 			}
+		}
+
+		return_t<T...> operator() (const tuple & op)const {
+			std::cout << "tuple" << std::endl;
+			v_tuple<T...> ret;
+			for (auto elem& : op.elems) {
+				auto value = boost::apply_visitor(*this, op.elems);
+				ret.tuple.push_back(value);
+			}
+
+			return ret;
+
 		}
 
 		template<class Expr>

@@ -29,13 +29,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Json.cpp">
+    <ClCompile Include="..\MakeSyntax_impl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\Example.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\MakeSyntax_impl.cpp">
+    <ClCompile Include="..\Json.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
