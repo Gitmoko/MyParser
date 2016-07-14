@@ -74,7 +74,7 @@ namespace MyParser {
 			}
 			return{ *l != *r };
 		}
-		return_t<T...> operator()(const binary_operator < operators::and > & op)const {
+		return_t<T...> operator()(const binary_operator < operators::and_ > & op)const {
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
 			if ((!l) || (!r)) {
@@ -82,7 +82,7 @@ namespace MyParser {
 			}
 			return{ *l&&*r };
 		}
-		return_t<T...> operator()(const binary_operator < operators:: or > & op)const {
+		return_t<T...> operator()(const binary_operator < operators:: or_ > & op)const {
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
 			if ((!l) || (!r)) {
@@ -241,7 +241,7 @@ namespace MyParser {
 			}
 			return{ *l != *r };
 		}
-		return_t<T...> operator() (const binary_operator < operators::and > & op)const {
+		return_t<T...> operator() (const binary_operator < operators::and_ > & op)const {
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
 			std::cout << "and" << std::endl;
@@ -250,7 +250,7 @@ namespace MyParser {
 			}
 			return{ *l&&*r };
 		}
-		return_t<T...> operator() (const binary_operator < operators:: or > & op)const {
+		return_t<T...> operator() (const binary_operator < operators:: or_ > & op)const {
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
 			std::cout << "or" << std::endl;

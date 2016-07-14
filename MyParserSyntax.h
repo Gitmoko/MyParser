@@ -1,5 +1,19 @@
 #ifndef MyParserParseH
 #define MyParserParseH
+
+#ifdef CNSPARSER_DLLUSE
+#ifdef CNSPARSER_EXPORTS
+#define MYPARSER_API __declspec(dllexport) 
+#else
+#define MYPARSER_API __declspec(dllimport) 
+#endif
+#else
+#define MYPARSER_API 
+#endif
+
+
+
+
 #include<string>
 #include <string>
 #include <boost/variant/variant.hpp>
@@ -12,7 +26,7 @@
 namespace MyParser {
 	enum struct operators {
 		eq, noteq
-		, and, or
+		, and_, or_
 		, relless, relmore, releqless, releqmore
 		, add, sub
 		, mul, div
@@ -42,8 +56,8 @@ namespace MyParser {
 		, std::string
 		, boost::recursive_wrapper<binary_operator<operators::eq>>
 		, boost::recursive_wrapper<binary_operator<operators::noteq>>
-		, boost::recursive_wrapper<binary_operator<operators::and>>
-		, boost::recursive_wrapper<binary_operator<operators:: or >>
+		, boost::recursive_wrapper<binary_operator<operators::and_>>
+		, boost::recursive_wrapper<binary_operator<operators:: or_ >>
 		, boost::recursive_wrapper<binary_operator<operators::relless>>
 		, boost::recursive_wrapper<binary_operator<operators::relmore>>
 		, boost::recursive_wrapper<binary_operator<operators::releqless>>

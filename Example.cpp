@@ -138,7 +138,7 @@ int main() {
 		D d;
 		MyParser::expression ast;
 		try {
-			ast = parser::Compile(s);
+			ast = MyParser::Compile(s);
 		}
 		catch (MyParser::compile_failed err) {
 			std::cout <<"Expecting: "<< err.what << std::endl;

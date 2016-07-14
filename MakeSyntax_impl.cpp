@@ -21,7 +21,7 @@
 
 
 namespace MyParser {
-	expression parse_impl(const std::string& s) {
+	expression MYPARSER_API parse_impl(const std::string& s) {
 		MyParser::expr_grammar<decltype(s.begin())> exp;
 		expression tree;
 		auto b = s.begin();
@@ -30,7 +30,7 @@ namespace MyParser {
 		return tree;
 	}
 
-	expression parse_impl_debug(const std::string& s) {
+	expression MYPARSER_API parse_impl_debug(const std::string& s) {
 		MyParser::expr_grammar<decltype(s.begin())> exp;
 		expression tree;
 		auto b = s.begin();

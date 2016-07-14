@@ -43,17 +43,6 @@ namespace MyParser {
 		using Visitor_f_base = Visitor_f_base<Visitor_v, Visitor_f, T...>;
 	public:
 
-		static expression Compile(const std::string& s) {
-			expression tree;
-			try {
-				tree = parse_impl_debug(s);
-			}
-			catch (compile_failed err) {
-				throw err;
-			}
-			return tree;
-		}
-
 		static return_t_type Evaluate(const expression& expr, boost::variant<T...> i) {
 			return_t_type ret;
 			try {
@@ -91,6 +80,19 @@ namespace MyParser {
 
 		}
 	};
+
+	namespace {
+		expression Compile(const std::string& s) {
+			expression tree;
+			try {
+				tree = parse_impl_debug(s);
+			}
+			catch (compile_failed err) {
+				throw err;
+			}
+			return tree;
+		}
+	}
 
 }
 #endif

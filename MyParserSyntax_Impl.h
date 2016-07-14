@@ -99,8 +99,8 @@ namespace MyParser {
 				| (qi::lit("<=") > eq[_val = make_binray_operator<operators::releqless>()])
 				| (qi::lit(">=") > eq[_val = make_binray_operator<operators::releqmore>()]));
 
-			eq = and[_val = _1] >> *((qi::lit("&&") > and[_val = make_binray_operator<operators::and>()])
-				| (qi::lit("||") > and[_val = make_binray_operator<operators:: or >()]));
+			eq = and[_val = _1] >> *((qi::lit("&&") > and[_val = make_binray_operator<operators::and_>()])
+				| (qi::lit("||") > and[_val = make_binray_operator<operators:: or_ >()]));
 
 
 			and = additive[_val = _1] >> *((qi::lit("+") > additive[_val = make_binray_operator<operators::add>()])
@@ -149,12 +149,15 @@ namespace MyParser {
 					expr
 					, boost::phoenix::if_(boost::phoenix::ref(errorwhat) && boost::phoenix::ref(errorpos))[
 						errorwhat << qi::_4,
-							errorpos << boost::phoenix::construct<std::string>(qi::_3, qi::_2)
+							(boost::phoenix::if_(boost::phoenix::ref(failflag) == false)[(boost::phoenix::ref(errorpos) << boost::phoenix::construct<std::string>(qi::_3, qi::_2) << "\n"),boost::phoenix::ref(failflag) = true])
 					]
 					);
 
 		}
+	private:
+		bool failflag = false;
 
+	public:
 		std::ostringstream errorwhat;
 		std::ostringstream errorpos;
 
