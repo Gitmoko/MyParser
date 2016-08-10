@@ -10,6 +10,7 @@
 #include<functional>
 #include<iostream>
 #include "MyParserSyntax.h"
+#include "BinaryOperatorCalculaters.h"
 
 namespace MyParser {
 
@@ -57,104 +58,14 @@ namespace MyParser {
 			return{ str };
 		}
 
-
-		return_t<T...> operator()(const binary_operator < operators::eq >& op)const {
+		template<MyParser::operators Op>
+		return_t<T...> operator()(const binary_operator <Op>& op)const {
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
 			if ((!l) || (!r)) {
 				throw MyParser::bad_operand{};
 			}
-			return{ *l == *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::noteq > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l != *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::and_ > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l&&*r };
-		}
-		return_t<T...> operator()(const binary_operator < operators:: or_ > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l || *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::relless > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l < *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::relmore > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l > *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::releqless > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l <= *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::releqmore > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l >= *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::add > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			else {
-				return{ *l + *r };
-			}
-		}
-		return_t<T...> operator()(const binary_operator < operators::sub > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l - *r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::mul > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l**r };
-		}
-		return_t<T...> operator()(const binary_operator < operators::div > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l / *r };
+			return{MyParser::Calculaters<Op>::Calc(*l,*r)};
 		}
 
 		return_t<T...> operator()(const variable & op)const {
@@ -222,117 +133,18 @@ namespace MyParser {
 			return{ str };
 		}
 
-
-		return_t<T...> operator() (const binary_operator < operators::eq >& op)const {
+		template< MyParser::operators Op>
+		return_t<T...> operator() (const binary_operator < Op >& op)const {
+			using calc = MyParser::Calculaters<Op>;
+			std::cout << calc::Name() << std::endl;
 			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
 			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "eq" << std::endl;
 			if ((!l) || (!r)) {
 				throw MyParser::bad_operand{};
 			}
-			return{ *l == *r };
+			return{ calc::Calc(*l,*r) };
 		}
-		return_t<T...> operator() (const binary_operator < operators::noteq > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "noteq" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l != *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::and_ > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "and" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l&&*r };
-		}
-		return_t<T...> operator() (const binary_operator < operators:: or_ > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "or" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l || *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::relless > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "relless" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l < *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::relmore > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "relmore" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l > *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::releqless > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "releqless" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l <= *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::releqmore > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "noteqmore" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l >= *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::add > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "add" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			else {
-				return{ *l + *r };
-			}
-		}
-		return_t<T...> operator() (const binary_operator < operators::sub > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "sub" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l - *r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::mul > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "mul" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l**r };
-		}
-		return_t<T...> operator() (const binary_operator < operators::div > & op)const {
-			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.left))));
-			auto r = (boost::get<double>(&(boost::apply_visitor(*this, op.right))));
-			std::cout << "div" << std::endl;
-			if ((!l) || (!r)) {
-				throw MyParser::bad_operand{};
-			}
-			return{ *l / *r };
-		}
+		
 
 		return_t<T...> operator() (const variable & op)const {
 			std::cout << "variable" << std::endl;
@@ -344,7 +156,7 @@ namespace MyParser {
 		return_t<T...> operator() (const function & op)const {
 			std::cout << "function" << std::endl;
 			std::vector<return_t<T...>> args;
-			const auto&  list = op.args;
+			auto&  list = op.args;
 			for (auto& elem : list) {
 				args.push_back(boost::apply_visitor(*this, elem));
 			}
@@ -369,13 +181,11 @@ namespace MyParser {
 		return_t<T...> operator() (const tuple & op)const {
 			std::cout << "tuple" << std::endl;
 			v_tuple<T...> ret;
-			for (auto elem& : op.elems) {
-				auto value = boost::apply_visitor(*this, op.elems);
+			for (auto& elem : op.elems) {
+				auto value = boost::apply_visitor(*this, elem);
 				ret.tuple.push_back(value);
 			}
-
 			return ret;
-
 		}
 
 		template<class Expr>

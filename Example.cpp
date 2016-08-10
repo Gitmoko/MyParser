@@ -2,54 +2,7 @@
 #include<map>
 #include"MyParserAPI.h"
 
-struct printer : public boost::static_visitor<void> {
-	void operator()(const double&arg){
-		drawspace();
-		std::cout << arg;
-	}
-	void operator()(const std::string& arg) {
-		drawspace();
-		std::cout << arg;
-	}
-	template<class ...T>
-	void operator()(const MyParser::v_tuple<T...>& arg){
 
-		drawspace();
-		std::cout << "[" << std::endl;
-
-		depth++;
-		for (auto&elem : arg.tuple) {
-			boost::apply_visitor(*this, elem);
-			std::cout << std::endl;
-		}
-		depth--;
-
-		drawspace();
-		std::cout << "]";
-	}
-	template<class...T>
-	void operator()(const MyParser::Instance<T...>& arg) {
-		drawspace();
-		std::cout << "instance";
-	}
-	template<class Variant>
-	static void printtree(const Variant& v){
-		auto p = printer{};
-		boost::apply_visitor(p, v);
-		std::cout << std::endl;
-	}
-
-	void drawspace() {
-		auto n = depth;
-		while(n--)
-			std::cout << "  ";
-	}
-
-
-public:
-	unsigned depth = 1;
-
-};
 
 struct C;
 struct D;
@@ -101,6 +54,7 @@ struct visitor_v : public parser::Visitor_v_base{
 		std::cout <<"D's "<< name << std::endl;
 		if (arg->v.count(name) > 0)
 			return arg->v[name];
+		throw MyParser::bad_operand{};
 		return 0;
 	}
 	ret operator()(...) {
@@ -147,7 +101,7 @@ int main() {
 		auto ret = parser::Evaluate(ast, { &d });
 
 		if (!ret.empty()) {
-			printer::printtree(ret);
+			MyParser::printer::printtree(ret);
 		}
 	}
 }

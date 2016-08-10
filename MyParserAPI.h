@@ -53,6 +53,16 @@ namespace MyParser {
 			}
 			return ret;
 		}
+		static return_t_type Evaluate_debug(const expression& expr, boost::variant<T...> i) {
+			return_t_type ret;
+			try {
+				ret = visitor_debug<Visitor_v, Visitor_f, T...>::get(Instance<T...>{i}, expr);
+			}
+			catch (bad_operand ex) {
+				throw ex;
+			}
+			return ret;
+		}
 
 		static return_t<T...> Parse(const std::string& s, boost::variant<T...> i) {
 			auto tree = parse_impl(s);
@@ -93,6 +103,55 @@ namespace MyParser {
 			return tree;
 		}
 	}
+
+	struct printer : public boost::static_visitor<void> {
+		void operator()(const double&arg) {
+			drawspace();
+			std::cout << arg;
+		}
+		void operator()(const std::string& arg) {
+			drawspace();
+			std::cout << arg;
+		}
+		template<class ...T>
+		void operator()(const MyParser::v_tuple<T...>& arg) {
+
+			drawspace();
+			std::cout << "[" << std::endl;
+
+			depth++;
+			for (auto&elem : arg.tuple) {
+				boost::apply_visitor(*this, elem);
+				std::cout << std::endl;
+			}
+			depth--;
+
+			drawspace();
+			std::cout << "]";
+		}
+		template<class...T>
+		void operator()(const MyParser::Instance<T...>& arg) {
+			drawspace();
+			std::cout << "instance";
+		}
+		template<class Variant>
+		static void printtree(const Variant& v) {
+			auto p = printer{};
+			boost::apply_visitor(p, v);
+			std::cout << std::endl;
+		}
+
+		void drawspace() {
+			auto n = depth;
+			while (n--)
+				std::cout << "  ";
+		}
+
+
+	public:
+		unsigned depth = 1;
+
+	};
 
 }
 #endif
