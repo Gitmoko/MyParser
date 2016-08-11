@@ -1,6 +1,9 @@
 #ifndef MyParserFrontH
 #define MyParserFrontH
 
+
+#include "MyParserSyntax.h"
+#include "BinaryOperatorCalculaters.h"
 #include <string>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
@@ -9,8 +12,6 @@
 #include<memory>
 #include<functional>
 #include<iostream>
-#include "MyParserSyntax.h"
-#include "BinaryOperatorCalculaters.h"
 
 namespace MyParser {
 
@@ -66,6 +67,15 @@ namespace MyParser {
 				throw MyParser::bad_operand{};
 			}
 			return{MyParser::Calculaters<Op>::Calc(*l,*r)};
+		}
+
+		template<MyParser::unary_operators Op>
+		return_t<T...> operator()(const unary_operator <Op>& op)const {
+			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.child))));
+			if (!l) {
+				throw MyParser::bad_operand{};
+			}
+			return{ MyParser::UnaryCalculaters<Op>::Calc(*l) };
 		}
 
 		return_t<T...> operator()(const variable & op)const {
@@ -143,6 +153,17 @@ namespace MyParser {
 				throw MyParser::bad_operand{};
 			}
 			return{ calc::Calc(*l,*r) };
+		}
+
+		template<MyParser::unary_operators Op>
+		return_t<T...> operator()(const unary_operator <Op>& op)const {
+			auto l = (boost::get<double>(&(boost::apply_visitor(*this, op.child))));
+			using calc = MyParser::UnaryCalculaters<Op>;
+			std::cout << calc::Name() << std::endl;
+			if (!l) {
+				throw MyParser::bad_operand{};
+			}
+			return{ calc::Calc(*l) };
 		}
 		
 

@@ -8,6 +8,8 @@
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #define BOOST_SPIRIT_USE_PHOENIX_V3 
 
+#include"MyParserSyntax_Impl.h"
+
 #include <boost/variant/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/variant/static_visitor.hpp>
@@ -16,7 +18,6 @@
 #include <boost/spirit/include/phoenix.hpp>
 
 
-#include"MyParserSyntax_Impl.h"
 
 
 

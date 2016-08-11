@@ -12,16 +12,19 @@
 #endif
 
 
-
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS 
+#define BOOST_MPL_LIMIT_LIST_SIZE 30
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 30
 
 #include<string>
 #include <string>
+#include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
-#include <boost/variant/get.hpp>
 #include<vector>
 #include<memory>
 #include<functional>
+
 
 namespace MyParser {
 	enum struct operators {
@@ -32,10 +35,14 @@ namespace MyParser {
 		, mul, div
 	};
 
+	enum struct unary_operators {
+		not_,plus,minus
+	};
+
 	template<operators Op>
 	struct binary_operator;
 
-	template<operators Op>
+	template<unary_operators Op>
 	struct unary_operator;
 
 
@@ -66,6 +73,9 @@ namespace MyParser {
 		, boost::recursive_wrapper<binary_operator<operators::sub>>
 		, boost::recursive_wrapper<binary_operator<operators::mul>>
 		, boost::recursive_wrapper<binary_operator<operators::div>>
+		, boost::recursive_wrapper<unary_operator<unary_operators::plus>>
+		, boost::recursive_wrapper<unary_operator<unary_operators::minus>>
+		, boost::recursive_wrapper<unary_operator<unary_operators::not_>>
 		, boost::recursive_wrapper<function>
 		, boost::recursive_wrapper<arrow>
 		, boost::recursive_wrapper<tuple>
@@ -79,7 +89,7 @@ namespace MyParser {
 		binary_operator(expression const lhs, expression const  rhs) :left{ lhs }, right{ rhs } {}
 	};
 
-	template<operators Op>
+	template<unary_operators Op>
 	struct unary_operator {
 		expression child;
 		unary_operator(expression const child) :child{ child } {}

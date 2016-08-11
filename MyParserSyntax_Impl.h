@@ -2,10 +2,11 @@
 #define MyParser_Parse_ImplH
 
 
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
+
 #include"MyParserSyntax.h"
 
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 namespace MyParser {
 
 	namespace {
@@ -17,7 +18,7 @@ namespace MyParser {
 			, boost::spirit::qi::_val, boost::spirit::qi::_1);
 		}
 
-		template<operators Op>
+		template<unary_operators Op>
 		auto make_unary_operator() {
 			return boost::phoenix::bind(
 				[](auto const child) {return unary_operator<Op>{child}; }
@@ -82,6 +83,7 @@ namespace MyParser {
 		qi::rule<Iterator, std::string(), ascii::space_type> code, quoted;
 		qi::rule<Iterator, function(), ascii::space_type> func;
 		qi::rule<Iterator, variable(), ascii::space_type> var;
+		qi::rule<Iterator, expression(), ascii::space_type> unary;
 
 		std::string charset = "a-zA-Z";
 		std::string numset = "0-9";
@@ -109,7 +111,11 @@ namespace MyParser {
 			additive = multiple[_val = _1] >> *((qi::lit("*") > multiple[_val = make_binray_operator<operators::mul>()])
 				| (qi::lit("/") > multiple[_val = make_binray_operator<operators::div>()]));
 
-			multiple = arrow[_val = _1] >> *(qi::lit("->") > (func | var)[_val = make_arrow()]);
+			multiple = unary[_val = _1] >> *(qi::lit("->") > (func | var)[_val = make_arrow()]);
+
+			unary = ((-qi::lit("+")) >> arrow[_val = make_unary_operator<unary_operators::plus>()])
+				| ((-qi::lit("-")) >> arrow[_val = make_unary_operator<unary_operators::minus>()])
+				| ((-qi::lit("!")) >> arrow[_val = make_unary_operator<unary_operators::not_>()]);
 
 			arrow = double_[_val = _1]
 				| lit("(") > expr[_val = _1] > lit(")")
@@ -142,6 +148,7 @@ namespace MyParser {
 			func.name("func");
 			var.name("var");
 			tpl.name("tuple");
+			unary.name("unary");
 
 
 			qi::on_error<qi::fail>
