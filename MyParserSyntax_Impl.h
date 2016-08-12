@@ -76,6 +76,7 @@ namespace MyParser {
 	template <class Iterator>
 	struct expr_grammar :public qi::grammar<Iterator, expression(), ascii::space_type> {
 	private:
+		qi::rule<Iterator, expression(), ascii::space_type> wholeexpr;
 		qi::rule<Iterator, expression(), ascii::space_type> expr, eq, and, rel, additive, multiple, arrow;
 		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> args;
 		qi::rule<Iterator, std::vector<expression>(), ascii::space_type> args_impl;
@@ -88,10 +89,12 @@ namespace MyParser {
 		std::string charset = "a-zA-Z";
 		std::string numset = "0-9";
 	public:
-		expr_grammar() :expr_grammar::base_type(expr, "expr") {
+		expr_grammar() :expr_grammar::base_type(wholeexpr, "wholeexpr") {
 			code = lexeme[qi::char_(charset) > *(qi::char_(charset + numset))];
 
 			quoted %= lexeme['"' > *(qi::char_ - '"') > '"'];
+
+			wholeexpr = expr[_val = _1] > qi::eoi;
 
 			expr = rel[_val = _1] >> *((qi::lit("==") > rel[_val = make_binray_operator<operators::eq>()])
 				| (qi::lit("!=") > rel[_val = make_binray_operator<operators::noteq>()]));
@@ -113,9 +116,10 @@ namespace MyParser {
 
 			multiple = unary[_val = _1] >> *(qi::lit("->") > (func | var)[_val = make_arrow()]);
 
-			unary = ((-qi::lit("+")) >> arrow[_val = make_unary_operator<unary_operators::plus>()])
-				| ((-qi::lit("-")) >> arrow[_val = make_unary_operator<unary_operators::minus>()])
-				| ((-qi::lit("!")) >> arrow[_val = make_unary_operator<unary_operators::not_>()]);
+			unary = ((qi::lit("+")) > arrow[_val = make_unary_operator<unary_operators::plus>()])
+				| ((qi::lit("-")) > arrow[_val = make_unary_operator<unary_operators::minus>()])
+				| ((qi::lit("!")) > arrow[_val = make_unary_operator<unary_operators::not_>()])
+				| arrow[_val = _1];
 
 			arrow = double_[_val = _1]
 				| lit("(") > expr[_val = _1] > lit(")")
@@ -134,6 +138,7 @@ namespace MyParser {
 
 			tpl = args[_val = make_tuple()];
 
+			wholeexpr.name("wholeexpr");
 			expr.name("expr");
 			eq.name("eq");
 			and.name("and");
@@ -153,20 +158,22 @@ namespace MyParser {
 
 			qi::on_error<qi::fail>
 				(
-					expr
+					wholeexpr
 					, boost::phoenix::if_(boost::phoenix::ref(errorwhat) && boost::phoenix::ref(errorpos))[
 						errorwhat << qi::_4,
-							(boost::phoenix::if_(boost::phoenix::ref(failflag) == false)[(boost::phoenix::ref(errorpos) << boost::phoenix::construct<std::string>(qi::_3, qi::_2) << "\n"),boost::phoenix::ref(failflag) = true])
+							(boost::phoenix::if_(boost::phoenix::ref(failflag) == false)[(boost::phoenix::ref(errorpos) << boost::phoenix::construct<std::string>(qi::_3, qi::_2)),boost::phoenix::ref(failflag) = true])
 					]
 					);
 
 		}
 	private:
 		bool failflag = false;
-
 	public:
+
 		std::ostringstream errorwhat;
 		std::ostringstream errorpos;
+
+		bool isfailed() { return faliflag; }
 
 	};
 

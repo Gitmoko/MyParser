@@ -42,14 +42,13 @@ struct D  {
 
 struct visitor_v : public parser::Visitor_v_base{
 	using ret = base_t::return_t_type;
-	visitor_v(const std::string& name_) :Visitor_v_base(name_){};
-	ret operator()(C* arg) {
+	ret operator()(std::string name,C* arg) {
 		std::cout <<"C's "<< name << std::endl;
 		if (arg->v.count(name)>0)
 			return arg->v[name];
 		return 0;
 	}
-	ret operator()(D* arg) {
+	ret operator()(std::string name,D* arg) {
 
 		std::cout <<"D's "<< name << std::endl;
 		if (arg->v.count(name) > 0)
@@ -65,15 +64,14 @@ struct visitor_v : public parser::Visitor_v_base{
 
 struct visitor_f : public parser::Visitor_f_base {
 	using ret = base_t::return_t_type;
-	visitor_f(const std::string& name_, base_t::args_type& args_ ) :parser::Visitor_f_base(name_,args_){}
-	ret operator()(C* arg) {
+	ret operator()(std::string name, base_t::args_type args ,C* arg) {
 
 		std::cout <<"C's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
 			return arg->f[name](args);
 		return 0;
 	}
-	ret operator()(D* arg) {
+	ret operator()(std::string name, base_t::args_type args,D* arg) {
 
 		std::cout <<"D's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
@@ -98,10 +96,15 @@ int main() {
 			std::cout <<"Expecting: "<< err.what << std::endl;
 			std::cout <<"parsing here: "<< err.pos << std::endl;
 		}
-		auto ret = parser::Evaluate(ast, { &d });
-
-		if (!ret.empty()) {
-			MyParser::printer::printtree(ret);
+		try {
+			auto ret = parser::Evaluate(ast, { &d });
+			if (!ret.empty()) {
+				MyParser::printer::printtree(ret);
+			}
 		}
+		catch(...){
+			std::cout << "  bad operand\n" << std::endl;
+		}
+
 	}
 }

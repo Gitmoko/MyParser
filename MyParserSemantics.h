@@ -79,8 +79,8 @@ namespace MyParser {
 		}
 
 		return_t<T...> operator()(const variable & op)const {
-			Visitor_v v(op.name);
-			auto ret = boost::apply_visitor(v, i.instance);
+			auto tmpv = std::bind(Visitor_v{}, op.name, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);
 			return ret;
 		}
 
@@ -90,8 +90,8 @@ namespace MyParser {
 			for (auto& elem : list) {
 				args.push_back(boost::apply_visitor(*this, elem));
 			}
-			Visitor_f v(op.name, v_tuple<T...>{ args });
-			auto ret = boost::apply_visitor(v, i.instance);//calc function
+			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{args}, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
 			return ret;
 		}
 
@@ -168,9 +168,9 @@ namespace MyParser {
 		
 
 		return_t<T...> operator() (const variable & op)const {
-			std::cout << "variable" << std::endl;
-			Visitor_v v(op.name);
-			auto ret = boost::apply_visitor(v, i.instance);
+			std::cout << "variable" << std::endl; 
+			auto tmpv = std::bind(Visitor_v{}, op.name, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);
 			return ret;
 		}
 
@@ -181,8 +181,8 @@ namespace MyParser {
 			for (auto& elem : list) {
 				args.push_back(boost::apply_visitor(*this, elem));
 			}
-			Visitor_f v(op.name, v_tuple<T...>{ args });
-			auto ret = boost::apply_visitor(v, i.instance);//calc function
+			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{ args }, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
 			return ret;
 		}
 

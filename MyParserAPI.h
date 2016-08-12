@@ -7,13 +7,8 @@ namespace MyParser {
 	template<class Visitor_v, class Visitor_f, class...T>
 	struct Visitor_v_base :boost::static_visitor<return_t<T...>> {
 	public:
-
 		using base_t = Visitor_v_base<Visitor_v, Visitor_f, T...>;
 		using return_t_type = return_t<T...>;
-		const std::string& name;
-	public:
-
-		Visitor_v_base(const std::string& name_) :name(name_) {}
 	};
 
 	template<class Visitor_v, class Visitor_f, class...T>
@@ -23,11 +18,6 @@ namespace MyParser {
 		using base_t = Visitor_f_base<Visitor_v, Visitor_f, T...>;
 		using return_t_type = return_t<T...>;
 		using args_type = v_tuple<T...>;
-		const std::string& name;
-		const args_type& args;
-	public:
-
-		Visitor_f_base(const std::string& name_, const args_type& args_) :name(name_), args(args_) {}
 	};
 
 	template<class Visitor_v, class Visitor_f, class ...T>
@@ -49,7 +39,7 @@ namespace MyParser {
 				ret = visitor<Visitor_v, Visitor_f, T...>::get(Instance<T...>{i}, expr);
 			}
 			catch (bad_operand ex) {
-				ex;
+				throw ex;
 			}
 			return ret;
 		}
@@ -138,7 +128,7 @@ namespace MyParser {
 		static void printtree(const Variant& v) {
 			auto p = printer{};
 			boost::apply_visitor(p, v);
-			std::cout << std::endl;
+			std::cout << "\n" << std::endl;
 		}
 
 		void drawspace() {

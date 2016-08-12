@@ -40,7 +40,7 @@ namespace MyParser {
 		if (b != e) {
 			auto err = compile_failed{};
 			err.what = exp.errorwhat.str();
-			err.pos = exp.errorpos.str();
+			err.pos = exp.errorpos.str() + "[end]";
 			throw err;
 		}
 		return tree;
