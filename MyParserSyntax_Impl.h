@@ -68,6 +68,24 @@ namespace MyParser {
 				return arrow{ lhs, rhs }; }
 			, boost::spirit::qi::_val, boost::spirit::qi::_1);
 		}
+
+		auto make_scope() {
+			return boost::phoenix::bind(
+				[](const boost::optional<std::string> name, const boost::variant<function,variable> op) {
+					std::string str = name.is_initialized() ? name.get() : "";
+					if (op.which() == 0) {
+						return expression{ scope_operator<function>{ str,boost::get<function>(op) } };
+					}
+					else if(op.which() == 1){
+						return expression{ scope_operator<variable>{ str,boost::get<variable>(op) } };
+					}
+					else {
+						throw 0;
+					}
+				 }
+			, boost::spirit::qi::_1, boost::spirit::qi::_2);
+		}
+
 	}
 
 
@@ -85,6 +103,7 @@ namespace MyParser {
 		qi::rule<Iterator, function(), ascii::space_type> func;
 		qi::rule<Iterator, variable(), ascii::space_type> var;
 		qi::rule<Iterator, expression(), ascii::space_type> unary;
+		qi::rule<Iterator, expression(), ascii::space_type> scope;
 
 		std::string charset = "a-zA-Z";
 		std::string numset = "0-9";
@@ -105,7 +124,7 @@ namespace MyParser {
 				| (qi::lit(">=") > eq[_val = make_binray_operator<operators::releqmore>()]));
 
 			eq = and[_val = _1] >> *((qi::lit("&&") > and[_val = make_binray_operator<operators::and_>()])
-				| (qi::lit("||") > and[_val = make_binray_operator<operators:: or_ >()]));
+				| (qi::lit("||") > and[_val = make_binray_operator<operators::or_ >()]));
 
 
 			and = additive[_val = _1] >> *((qi::lit("+") > additive[_val = make_binray_operator<operators::add>()])
@@ -124,9 +143,12 @@ namespace MyParser {
 			arrow = double_[_val = _1]
 				| lit("(") > expr[_val = _1] > lit(")")
 				| lit("{") > tpl[_val = _1] > lit("}")
-				| func[_val = _1]
-				| var[_val = _1]
+				| scope[_val = _1]
 				| quoted[_val = _1];
+
+			scope = ((-code) >> lit("::") > (func | var))[_val = make_scope()]
+				| func[_val = _1]
+				| var[_val = _1];
 
 			func = (code >> lit("(") > args > lit(")"))[_val = make_function()];
 
@@ -154,6 +176,7 @@ namespace MyParser {
 			var.name("var");
 			tpl.name("tuple");
 			unary.name("unary");
+			scope.name("scope");
 
 
 			qi::on_error<qi::fail>

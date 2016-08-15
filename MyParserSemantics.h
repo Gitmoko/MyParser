@@ -12,6 +12,7 @@
 #include<memory>
 #include<functional>
 #include<iostream>
+#include<unordered_map>
 
 namespace MyParser {
 
@@ -49,7 +50,26 @@ namespace MyParser {
 		using return_type = return_t<T...>;
 
 		const Instance<T...>& i;
-		visitor(const Instance<T...>& i_) :i(i_) {}
+		std::unordered_map < std::string, std::function < return_type(tuple_type arg) > > stdfunc;
+		std::unordered_map<std::string, return_type> stdconstant;
+		visitor(const Instance<T...>& i_) :i(i_)
+			, stdfunc({ { "sin", [](tuple_type arg) {return std::sin(boost::get<double>(arg.tuple[0])); } }
+					,{"cos" , [](tuple_type arg) {return std::cos(boost::get<double>(arg.tuple[0])); } }
+					,{ "tan" , [](tuple_type arg) {return std::tan(boost::get<double>(arg.tuple[0])); } }
+					,{ "pow" , [](tuple_type arg) {return std::pow(boost::get<double>(arg.tuple[0]),boost::get<double>(arg.tuple[1])); } }
+					,{ "log" , [](tuple_type arg) {return std::log(boost::get<double>(arg.tuple[1]))/std::log(boost::get<double>(arg.tuple[0])); } }
+					,{"get" , [](tuple_type arg) {return boost::get<tuple_type>(arg.tuple[1]).tuple[boost::get<double>(arg.tuple[0])]; } }
+					,{ "rot2D" , [](tuple_type arg) {
+									auto &vec = boost::get<tuple_type>(arg.tuple[0]).tuple;
+									auto rad = boost::get<double>(arg.tuple[1]);
+									auto radcos = std::cos(rad);
+									auto radsin = std::sin(rad);
+									auto x = boost::get<double>(vec[0]);
+									auto y = boost::get<double>(vec[1]);
+									return tuple_type{ tuple_type::mem_t{x*radcos - y*radsin,x*radsin + y*radcos} };
+								}}
+			})
+			, stdconstant({ { "PI", return_type{3.1415926535897932384626} }, { "e", return_type{ 2.718281828459045} } }) {}
 
 		return_t<T...> operator()(const double & constant)const {
 			return{ constant };
@@ -66,7 +86,7 @@ namespace MyParser {
 			if ((!l) || (!r)) {
 				throw MyParser::bad_operand{};
 			}
-			return{MyParser::Calculaters<Op>::Calc(*l,*r)};
+			return{ MyParser::Calculaters<Op>::Calc(*l,*r) };
 		}
 
 		template<MyParser::unary_operators Op>
@@ -90,10 +110,36 @@ namespace MyParser {
 			for (auto& elem : list) {
 				args.push_back(boost::apply_visitor(*this, elem));
 			}
-			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{args}, std::placeholders::_1);
+			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{ args }, std::placeholders::_1);
 			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
 			return ret;
 		}
+
+		return_t<T...> operator()(const scope_operator<function> & scope)const {
+			auto op = scope.f;
+			std::vector<return_t<T...>> args;
+			auto&  list = op.args;
+			for (auto& elem : list) {
+				args.push_back(boost::apply_visitor(*this, elem));
+			}
+			if (scope.scope_name.size() == 0) {
+				return stdfunc.at(op.name)(tuple_type{ args });
+			}
+			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{ args }, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
+			return ret;
+		}
+
+		return_t<T...> operator()(const scope_operator<variable> &scope)const {
+			auto op = scope.v;
+			if (scope.scope_name.size() == 0) {
+				return stdconstant.at(op.name);
+			}
+			auto tmpv = std::bind(Visitor_v{}, op.name, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);
+			return ret;
+		}
+
 
 		return_t<T...> operator()(const arrow & op)const {
 			auto left = boost::apply_visitor(*this, op.l);
@@ -121,6 +167,7 @@ namespace MyParser {
 			auto v = visitor<Visitor_v, Visitor_f, T...>{ i };
 			return boost::apply_visitor(v, arg);
 		}
+
 
 	};
 
@@ -185,6 +232,34 @@ namespace MyParser {
 			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
 			return ret;
 		}
+
+		return_t<T...> operator()(const scope_operator<function> & scope)const {
+			std::cout << scope.scope_name << " scoped function" << std::endl;
+			auto op = scope.f;
+			std::vector<return_t<T...>> args;
+			auto&  list = op.args;
+			for (auto& elem : list) {
+				args.push_back(boost::apply_visitor(*this, elem));
+			}
+			if (scope.scope_name.size() == 0) {
+				return stdfunc[op.name](tuple_type{ args });
+			}
+			auto tmpv = std::bind(Visitor_f{}, op.name, tuple_type{ args }, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);//calc function
+			return ret;
+		}
+
+		return_t<T...> operator()(const scope_operator<variable> &scope)const {
+			std::cout << scope.scope_name << " scoped variable" << std::endl;
+			auto op = scope.v;
+			if (scope.scope_name.size() == 0) {
+				return stdconstant[op.name];
+			}
+			auto tmpv = std::bind(Visitor_v{}, op.name, std::placeholders::_1);
+			auto ret = boost::apply_visitor(tmpv, i.instance);
+			return ret;
+		}
+
 
 		return_t<T...> operator() (const arrow & op)const {
 			std::cout << "arrow" << std::endl;

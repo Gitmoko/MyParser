@@ -45,6 +45,9 @@ namespace MyParser {
 	template<unary_operators Op>
 	struct unary_operator;
 
+	template<class T>
+	struct scope_operator;
+
 
 	struct variable {
 		std::string name;
@@ -76,6 +79,8 @@ namespace MyParser {
 		, boost::recursive_wrapper<unary_operator<unary_operators::plus>>
 		, boost::recursive_wrapper<unary_operator<unary_operators::minus>>
 		, boost::recursive_wrapper<unary_operator<unary_operators::not_>>
+		, boost::recursive_wrapper<scope_operator<function>>
+		, boost::recursive_wrapper<scope_operator<variable>>
 		, boost::recursive_wrapper<function>
 		, boost::recursive_wrapper<arrow>
 		, boost::recursive_wrapper<tuple>
@@ -102,6 +107,22 @@ namespace MyParser {
 		function(const std::string name, const arg_t  a) :name(name), args(a) {}
 		function() {}
 	};
+
+	template <>
+	struct scope_operator<function>{
+		function f;
+		std::string scope_name;
+		scope_operator(std::string str, function f_) :f(f_), scope_name(str) {}
+	};
+
+	template <>
+	struct scope_operator<variable> {
+		variable v;
+		std::string scope_name;
+		scope_operator(std::string str, variable v_) :v(v_), scope_name(str) {}
+	};
+
+	
 
 	struct arrow {
 		expression l;
