@@ -2,6 +2,7 @@
 #define MyParserFrontH
 
 
+#include "MyParser_Boost_Cfg.h"
 #include "MyParserSyntax.h"
 #include "BinaryOperatorCalculaters.h"
 #include <string>
