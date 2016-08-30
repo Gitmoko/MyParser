@@ -1,18 +1,6 @@
 #ifndef MyParserParseH
 #define MyParserParseH
 
-#ifdef CNSPARSER_DLLUSE
-#ifdef CNSPARSER_EXPORTS
-#define MYPARSER_API __declspec(dllexport) 
-#else
-#define MYPARSER_API __declspec(dllimport) 
-#endif
-#else
-#define MYPARSER_API 
-#endif
-
-
-
 #include "MyParser_Boost_Cfg.h"
 #include<string>
 #include <string>
@@ -135,10 +123,6 @@ namespace MyParser {
 		tuple() {}
 
 	};
-
-
-	expression parse_impl(const std::string& s);
-	expression parse_impl_debug(const std::string& s);
 
 	struct compile_failed { 
 		std::string what;

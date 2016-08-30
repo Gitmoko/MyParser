@@ -1,10 +1,7 @@
 ﻿#ifndef MyParser_Parse_ImplH
 #define MyParser_Parse_ImplH
 
-
-
 #include"MyParserSyntax.h"
-
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 namespace MyParser {
@@ -200,6 +197,29 @@ namespace MyParser {
 
 	};
 
+	inline expression parse_impl(const std::string& s) {
+		MyParser::expr_grammar<decltype(s.begin())> exp;
+		expression tree;
+		auto b = s.begin();
+		auto e = s.end();
+		boost::spirit::qi::phrase_parse(b, e, exp, boost::spirit::ascii::space, tree);
+		return tree;
+	}
+
+	inline expression parse_impl_debug(const std::string& s) {
+		MyParser::expr_grammar<decltype(s.begin())> exp;
+		expression tree;
+		auto b = s.begin();
+		auto e = s.end();
+		boost::spirit::qi::phrase_parse(b, e, exp, boost::spirit::ascii::space, tree);
+		if (b != e) {
+			auto err = compile_failed{};
+			err.what = exp.errorwhat.str();
+			err.pos = exp.errorpos.str() + "[end]";
+			throw err;
+		}
+		return tree;
+	}
 
 }
 #endif

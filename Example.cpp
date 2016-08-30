@@ -2,7 +2,7 @@
 #include<map>
 #include"MyParserAPI.h"
 
-
+MyParser::expression parse_impl(const std::string& s);
 
 struct C;
 struct D;
@@ -90,7 +90,7 @@ int main() {
 		D d;
 		MyParser::expression ast;
 		try {
-			ast = MyParser::Compile(s);
+			ast = parse_impl(s);
 		}
 		catch (MyParser::compile_failed err) {
 			std::cout <<"Expecting: "<< err.what << std::endl;
