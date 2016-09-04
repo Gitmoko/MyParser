@@ -129,6 +129,7 @@ namespace MyParser {
 		std::string pos;
 	};
 
+
 }
 
 #endif

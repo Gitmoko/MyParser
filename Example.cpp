@@ -1,6 +1,7 @@
 #include<iostream>
 #include<map>
 #include"MyParserAPI.h"
+#include"MyParser_decode.h"
 
 MyParser::expression parse_impl(const std::string& s);
 
@@ -91,6 +92,7 @@ int main() {
 		MyParser::expression ast;
 		try {
 			ast = parse_impl(s);
+			std::cout << MyParser::visitor_decode::get(ast) << std::endl;
 		}
 		catch (MyParser::compile_failed err) {
 			std::cout <<"Expecting: "<< err.what << std::endl;
@@ -105,6 +107,7 @@ int main() {
 		catch(...){
 			std::cout << "  bad operand\n" << std::endl;
 		}
+
 
 	}
 }

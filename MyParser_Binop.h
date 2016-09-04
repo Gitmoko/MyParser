@@ -1,9 +1,7 @@
-#ifndef BinaryOperatorsCalculatersH
-#define BinaryOperatorsCalculatersH
-#include <string>
-#include <algorithm>
-#include<iostream>
-#include "MyParserSyntax.h"
+#pragma once
+
+#include"MyParser_Boost_Cfg.h"
+#include"MyParserSyntax.h"
 
 #define ParserOpeq ==
 #define ParserOpnoteq !=
@@ -18,15 +16,23 @@
 #define ParserOpmul *
 #define ParserOpdiv /
 
-#define ParserUOpplus 
+#define ParserUOpplus +
 #define ParserUOpminus -
 #define ParserUOpnot_ !
 
 #define ParserMakeOp(x) ParserOp##x
+
+#define LiteralOpImpl(x) #x;
+#define LiteralOp(x) LiteralOpImpl(x);
+
+
 #define MakeCalculaters(x)\
     template<>\
 	class Calculaters<MyParser::operators::x >{\
 		public:\
+		static std::string Symbol(){\
+			return LiteralOp(ParserMakeOp(x));\
+		}\
 		static std::string Name(){\
 			return #x;\
 		}\
@@ -41,6 +47,9 @@
 template<>\
 class UnaryCalculaters<MyParser::unary_operators::x> {\
 public:\
+	static std::string Symbol(){\
+		return LiteralOp(ParserMakeUOp(x));\
+	}\
 	static std::string Name() {\
 		return #x;\
 	}\
@@ -78,5 +87,3 @@ namespace MyParser {
 	MakeUCalculaters(not_);
 
 }
-
-#endif
