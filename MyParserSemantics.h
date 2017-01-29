@@ -14,6 +14,104 @@
 #include<functional>
 #include<iostream>
 #include<unordered_map>
+
+#include <boost/utility/string_ref.hpp>
+#include<boost/functional/hash.hpp>
+
+
+#define STRING_VIEW(str) boost::string_ref{ str, sizeof(str)-1 }
+
+namespace std
+{
+	template<>
+	struct hash<boost::string_ref> {
+		size_t operator()(boost::string_ref const& sr) const {
+			return boost::hash_range(sr.begin(), sr.end());
+		}
+	};
+}
+namespace static_map {
+	//https://gist.github.com/ldionne/f7ff609f00dc7025a213
+	template <typename Key, typename Value, std::size_t N>
+	struct map {
+		std::array<std::pair<Key, Value>, N> storage_;
+
+	private:
+		constexpr void insert_impl(std::pair<Key, Value> const& pair,
+			std::array<bool, N>& initialized)
+		{
+			std::size_t hash = std::hash<Key>{}(pair.first);
+			auto start = std::next(initialized.begin(), hash % N);
+			auto it = std::find(start, initialized.end(), false);
+
+			if (it != initialized.end()) {
+				std::size_t index = std::distance(initialized.begin(), it);
+				storage_[index] = pair;
+				initialized[index] = true;
+				return;
+			}
+
+			it = std::find(initialized.begin(), start, false);
+			if (it != start) {
+				std::size_t index = std::distance(initialized.begin(), it);
+				storage_[index] = pair;
+				initialized[index] = true;
+				return;
+			}
+
+			assert(false && "should never be reached");
+		}
+
+	public:
+		template <typename ...K, typename ...V>
+		constexpr explicit map(std::pair<K, V> const& ...pairs) {
+			std::array<bool, N> initialized{}; // all false at the beginning
+			int expand[] = {1, (insert_impl(pairs, initialized), int{})... };
+			(void)expand;
+		}
+
+		constexpr Value const& at(Key const& key) const {
+			std::size_t hash = std::hash<Key>{}(key);
+			auto start = std::next(storage_.begin(), hash % N);
+			auto it = std::find_if(start, storage_.end(), [&](auto const& p) {
+				return p.first == key;
+			});
+
+			if (it != storage_.end())
+				return it->second;
+
+			it = std::find_if(storage_.begin(), start, [&](auto const& p) {
+				return p.first == key;
+			});
+			if (it != start)
+				return it->second;
+			else
+				throw std::out_of_range{ "no such key in the map" };
+		}
+	};
+
+
+	template <bool ...b>
+	struct and_
+		: std::is_same<and_<b...>, and_<(b, true)...>>
+	{ };
+
+	template <typename Key, typename Value, typename ...Pairs>
+	constexpr auto make_map(Pairs const& ...pairs) {
+		static_assert(and_<std::is_same<Key, typename Pairs::first_type>::value...>::value,
+			"make_map requires all keys to have the same type");
+
+		static_assert(and_<std::is_same<Value, typename Pairs::second_type>::value...>::value,
+			"make_map requires all values to have the same type");
+
+		return map<Key, Value, sizeof...(Pairs)>{pairs...};
+	}
+
+
+
+}
+
+
 namespace MyParser {
 
 	struct bad_operand {};
@@ -42,6 +140,35 @@ namespace MyParser {
 		v_tuple(const mem_t& arg) :tuple(arg) { }
 	};
 
+	template<class return_type, class tuple_type>
+	auto func_map() {
+		auto ret = static_map::make_map<boost::string_ref, std::function<return_type(tuple_type)>>(
+			std::make_pair(STRING_VIEW("sin"), std::function<return_type(tuple_type)>([](tuple_type arg) {return std::sin(boost::get<double>(arg.tuple[0])); }))
+			, std::make_pair(STRING_VIEW("cos"), std::function<return_type(tuple_type)>([](tuple_type arg) {return std::cos(boost::get<double>(arg.tuple[0])); }))
+			, std::make_pair(STRING_VIEW("tan"), std::function<return_type(tuple_type)>([](tuple_type arg) {return std::tan(boost::get<double>(arg.tuple[0])); }))
+			, std::make_pair(STRING_VIEW("pow"), std::function<return_type(tuple_type)>([](tuple_type arg) {return std::pow(boost::get<double>(arg.tuple[0]), boost::get<double>(arg.tuple[1])); }))
+			, std::make_pair(STRING_VIEW("log"), std::function<return_type(tuple_type)>([](tuple_type arg) {return std::log(boost::get<double>(arg.tuple[1])) / std::log(boost::get<double>(arg.tuple[0])); }))
+			, std::make_pair(STRING_VIEW("get"), std::function<return_type(tuple_type)>([](tuple_type arg) {return boost::get<tuple_type>(arg.tuple[1]).tuple[boost::get<double>(arg.tuple[0])]; }))
+			, std::make_pair(STRING_VIEW("rot2D"), std::function<return_type(tuple_type)>([](tuple_type arg) {
+			auto &vec = boost::get<tuple_type>(arg.tuple[0]).tuple;
+			auto rad = boost::get<double>(arg.tuple[1]);
+			auto radcos = std::cos(rad);
+			auto radsin = std::sin(rad);
+			auto x = boost::get<double>(vec[0]);
+			auto y = boost::get<double>(vec[1]);
+			return tuple_type{ tuple_type::mem_t{ x*radcos - y*radsin,x*radsin + y*radcos } }; })));
+		return ret;
+	}
+
+	template<class return_type>
+	auto constant_map() {
+		auto ret = static_map::make_map<boost::string_ref, return_type>(
+			std::make_pair(STRING_VIEW("PI"), return_type{ 3.1415926535897932384626 })
+			, std::make_pair(STRING_VIEW("e"), return_type{ 2.718281828459045 })
+			);
+		return ret;
+	}
+
 
 	template<class Visitor_v, class Visitor_f, class... T>
 	struct visitor : public boost::static_visitor<return_t<T...>> {
@@ -50,26 +177,13 @@ namespace MyParser {
 		using return_type = return_t<T...>;
 
 		const Instance<T...>& i;
-		std::unordered_map < std::string, std::function < return_type(tuple_type arg) > > stdfunc;
-		std::unordered_map<std::string, return_type> stdconstant;
-		visitor(const Instance<T...>& i_) :i(i_)
-			, stdfunc({ { "sin", [](tuple_type arg) {return std::sin(boost::get<double>(arg.tuple[0])); } }
-					,{"cos" , [](tuple_type arg) {return std::cos(boost::get<double>(arg.tuple[0])); } }
-					,{ "tan" , [](tuple_type arg) {return std::tan(boost::get<double>(arg.tuple[0])); } }
-					,{ "pow" , [](tuple_type arg) {return std::pow(boost::get<double>(arg.tuple[0]),boost::get<double>(arg.tuple[1])); } }
-					,{ "log" , [](tuple_type arg) {return std::log(boost::get<double>(arg.tuple[1]))/std::log(boost::get<double>(arg.tuple[0])); } }
-					,{"get" , [](tuple_type arg) {return boost::get<tuple_type>(arg.tuple[1]).tuple[boost::get<double>(arg.tuple[0])]; } }
-					,{ "rot2D" , [](tuple_type arg) {
-									auto &vec = boost::get<tuple_type>(arg.tuple[0]).tuple;
-									auto rad = boost::get<double>(arg.tuple[1]);
-									auto radcos = std::cos(rad);
-									auto radsin = std::sin(rad);
-									auto x = boost::get<double>(vec[0]);
-									auto y = boost::get<double>(vec[1]);
-									return tuple_type{ tuple_type::mem_t{x*radcos - y*radsin,x*radsin + y*radcos} };
-								}}
-			})
-			, stdconstant({ { "PI", return_type{3.1415926535897932384626} }, { "e", return_type{ 2.718281828459045} } }) {}
+			
+		decltype (func_map<return_type, tuple_type>()) stdfunc;
+		decltype (constant_map<return_type>()) stdconstant;
+
+		visitor(const Instance<T...>& i_) :i(i_), stdfunc(func_map<return_type, tuple_type>())
+			, stdconstant(constant_map<return_type>()) {}
+
 
 		return_t<T...> operator()(const double & constant)const {
 			return{ constant };
@@ -177,10 +291,14 @@ namespace MyParser {
 		using tuple_type = v_tuple<T...>;
 		using return_type = return_t<T...>;
 
-		std::unordered_map < std::string, std::function < return_type(tuple_type arg) > > stdfunc;
-		std::unordered_map<std::string, return_type> stdconstant;
+		decltype (func_map<return_type, tuple_type>()) stdfunc;
+		decltype (constant_map<return_type>()) stdconstant;
+
 		const Instance<T...>& i;
-		visitor_debug(const Instance<T...>& i_) :i(i_) {}
+
+
+		visitor_debug(const Instance<T...>& i_) :i(i_), stdfunc(func_map<return_type, tuple_type>())
+			, stdconstant(constant_map<return_type>()) {}
 
 		return_t<T...> operator()(const double & constant)const {
 			std::cout << "constant" << std::endl;

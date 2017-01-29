@@ -4,6 +4,8 @@
 #include"MyParser_decode.h"
 
 MyParser::expression parse_impl(const std::string& s);
+MyParser::expression parse_impl_d(const std::string& s);
+
 
 struct C;
 struct D;
@@ -85,13 +87,14 @@ struct visitor_f : public parser::Visitor_f_base {
 	}
 };
 
+
 int main() {
 	std::string s;
 	while (std::cout << ">", std::getline(std::cin, s), s != "q") {
 		D d;
 		MyParser::expression ast;
 		try {
-			ast = parse_impl(s);
+			ast = parse_impl_d(s);
 			std::cout << MyParser::visitor_decode::get(ast) << std::endl;
 		}
 		catch (MyParser::compile_failed err) {

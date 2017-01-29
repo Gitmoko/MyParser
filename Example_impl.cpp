@@ -18,3 +18,7 @@ MyParser::expression parse_impl(const std::string& s) {
 	return MyParser::parse_impl(s);
 }
 
+MyParser::expression parse_impl_d(const std::string& s) {
+	return MyParser::parse_impl_debug(s);
+}
+
