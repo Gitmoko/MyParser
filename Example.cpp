@@ -45,13 +45,13 @@ struct D  {
 
 struct visitor_v : public parser::Visitor_v_base{
 	using ret = base_t::return_t_type;
-	ret operator()(std::string name,C* arg) {
+	ret operator()(const std::string& name,C* arg) {
 		std::cout <<"C's "<< name << std::endl;
 		if (arg->v.count(name)>0)
 			return arg->v[name];
 		return 0;
 	}
-	ret operator()(std::string name,D* arg) {
+	ret operator()(const std::string& name,D* arg) {
 
 		std::cout <<"D's "<< name << std::endl;
 		if (arg->v.count(name) > 0)
@@ -59,7 +59,7 @@ struct visitor_v : public parser::Visitor_v_base{
 		throw MyParser::bad_operand{};
 		return 0;
 	}
-	ret operator()(...) {
+	ret operator()(const std::string& scope, std::string name) {
 		return 0;
 	}
 
@@ -67,14 +67,14 @@ struct visitor_v : public parser::Visitor_v_base{
 
 struct visitor_f : public parser::Visitor_f_base {
 	using ret = base_t::return_t_type;
-	ret operator()(std::string name, base_t::args_type args ,C* arg) {
+	ret operator()(const std::string& name, base_t::args_type args ,C* arg) {
 
 		std::cout <<"C's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
 			return arg->f[name](args);
 		return 0;
 	}
-	ret operator()(std::string name, base_t::args_type args,D* arg) {
+	ret operator()(const std::string& name, base_t::args_type args,D* arg) {
 
 		std::cout <<"D's "<< name << std::endl;
 		if (arg->f.count(name) > 0)
@@ -82,7 +82,7 @@ struct visitor_f : public parser::Visitor_f_base {
 		return 0;
 	}
 
-	 ret operator()(...) {
+	 ret operator()(const std::string& scope,std::string name, base_t::args_type args) {
 		return 0;
 	}
 };
@@ -107,8 +107,8 @@ int main() {
 				MyParser::printer::printtree(ret);
 			}
 		}
-		catch(...){
-			std::cout << "  bad operand\n" << std::endl;
+		catch(std::exception& e){
+			std::cout << e.what() << std::endl;
 		}
 
 

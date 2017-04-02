@@ -4,6 +4,7 @@
 
 namespace MyParser {
 
+
 	template<class...T>
 	struct Visitor_v_base :boost::static_visitor<return_t<T...>> {
 	public:
@@ -31,26 +32,18 @@ namespace MyParser {
 		using My_t = Parser_api<Visitor_v, Visitor_f, T...>;
 		using Visitor_v_base = Visitor_v_base<T...>;
 		using Visitor_f_base = Visitor_f_base<T...>;
+		using run_visitor = visitor<Visitor_v, Visitor_f, T...>;
 	public:
 
 		static return_t_type Evaluate(const expression& expr, boost::variant<T...> i) {
 			return_t_type ret;
-			try {
-				ret = visitor<Visitor_v, Visitor_f, T...>::get(Instance<T...>{i}, expr);
-			}
-			catch (bad_operand ex) {
-				throw ex;
-			}
+			ret = run_visitor::get(Instance<T...>{i}, expr);
 			return ret;
 		}
 		static return_t_type Evaluate_debug(const expression& expr, boost::variant<T...> i) {
 			return_t_type ret;
-			try {
-				ret = visitor_debug<Visitor_v, Visitor_f, T...>::get(Instance<T...>{i}, expr);
-			}
-			catch (bad_operand ex) {
-				throw ex;
-			}
+			ret = visitor_debug<Visitor_v, Visitor_f, T...>::get(Instance<T...>{i}, expr);
+			
 			return ret;
 		}
 	};
